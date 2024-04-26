@@ -1,31 +1,44 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Sample.Api.Models;
+using Sample.Data;
+using Sample.Data.Entities;
 
 namespace Sample.Api.Controllers;
+
 [ApiController]
 [Route("[controller]")]
 public class WeatherForecastController : ControllerBase
 {
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
-
     private readonly ILogger<WeatherForecastController> _logger;
+    private readonly AppDbContext _dbContext;
 
-    public WeatherForecastController(ILogger<WeatherForecastController> logger)
+    public WeatherForecastController(
+        ILogger<WeatherForecastController> logger,
+        AppDbContext dbContext)
     {
         _logger = logger;
+        _dbContext = dbContext;
     }
 
     [HttpGet(Name = "GetWeatherForecast")]
-    public IEnumerable<WeatherForecast> Get()
+    public async Task<IEnumerable<WeatherForecastDto>> Get()
     {
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-        {
-            Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            TemperatureC = Random.Shared.Next(-20, 55),
-            Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-        })
-        .ToArray();
+        var person = await _dbContext.People.Where(x => x.Name != null).ToListAsync();
+
+        var forecasts =
+            Enumerable
+                .Range(1, 5)
+                .Select(index => 
+                    new WeatherForecastDto
+                    {
+                        Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
+                        TemperatureC = Random.Shared.Next(-20, 55),
+                        Summary = person.FirstOrDefault()?.Name,
+                    })
+                .ToArray();
+
+        return forecasts;
     }
+
 }

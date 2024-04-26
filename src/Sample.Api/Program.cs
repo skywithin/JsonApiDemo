@@ -1,3 +1,6 @@
+using JsonApiDotNetCore.Configuration;
+using Microsoft.EntityFrameworkCore;
+using Sample.Data;
 
 namespace Sample.Api;
 
@@ -7,12 +10,27 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // Add services to the container.
-
         builder.Services.AddControllers();
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+
+        builder.Services
+            .AddEndpointsApiExplorer()
+            .AddSwaggerGen();
+
+        builder.Services
+            .AddDbContext<AppDbContext>(options =>
+            {
+                string connectionString = "TODO: GetConnectionString()";
+
+                options.UseInMemoryDatabase(connectionString);
+            });
+
+        builder.Services
+            .AddJsonApi<AppDbContext>(options =>
+            {
+                options.IncludeExceptionStackTraceInErrors = true;
+                options.IncludeRequestBodyInErrors = true;
+                options.SerializerOptions.WriteIndented = true;
+            });
 
         var app = builder.Build();
 
@@ -24,11 +42,10 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-
         app.UseAuthorization();
-
-
         app.MapControllers();
+
+        DbSeed.SeedDatabase(app.Services).Wait();
 
         app.Run();
     }
