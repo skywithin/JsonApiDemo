@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Sample.Api.Models;
 using Sample.Data;
-using Sample.Data.Entities;
 
 namespace Sample.Api.Controllers;
 
@@ -24,7 +23,7 @@ public class WeatherForecastController : ControllerBase
     [HttpGet(Name = "GetWeatherForecast")]
     public async Task<IEnumerable<WeatherForecastDto>> Get()
     {
-        var person = await _dbContext.People.Where(x => x.Name != null).ToListAsync();
+        var person = await _dbContext.People.Where(x => x.FirstName != null).ToListAsync();
 
         var forecasts =
             Enumerable
@@ -34,7 +33,7 @@ public class WeatherForecastController : ControllerBase
                     {
                         Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
                         TemperatureC = Random.Shared.Next(-20, 55),
-                        Summary = person.FirstOrDefault()?.Name,
+                        Summary = person.FirstOrDefault()?.FirstName,
                     })
                 .ToArray();
 

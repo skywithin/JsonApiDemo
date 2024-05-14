@@ -30,6 +30,8 @@ public class Program
                 options.IncludeExceptionStackTraceInErrors = true;
                 options.IncludeRequestBodyInErrors = true;
                 options.SerializerOptions.WriteIndented = true;
+
+                options.UseRelativeLinks = true;
             });
 
         var app = builder.Build();
@@ -40,12 +42,13 @@ public class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-
+        
         app.UseHttpsRedirection();
         app.UseAuthorization();
+        app.UseJsonApi();
         app.MapControllers();
 
-        DbSeed.SeedDatabase(app.Services).Wait();
+        DbInit.Seed(app.Services).Wait();
 
         app.Run();
     }
